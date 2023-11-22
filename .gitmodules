@@ -7,3 +7,6 @@
 [submodule "suave-geth"]
 	path = lib/suave-geth
 	url = https://github.com/flashbots/suave-geth.git
+[submodule "lib/suave-geth"]
+	path = lib/suave-geth
+	url = https://github.com/flashbots/suave-geth
