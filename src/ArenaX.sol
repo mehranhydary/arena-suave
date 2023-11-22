@@ -3,7 +3,7 @@ pragma solidity 0.8.19;
 
 import {Intent} from "./base/Intent.sol";
 import "suave/SuaveForge.sol";
-import "./base/Structs.sol";
+import {OrderIntent, OrderSolutionResult} from "./base/Structs.sol";
 import {OrderIntentLibrary} from "./libraries/OrderIntentLibrary.sol";
 
 contract ArenaX is Intent {
