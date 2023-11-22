@@ -11,23 +11,23 @@ contract ArenaX is Intent {
     error InvalidChain(string);
     using OrderIntentLibrary for OrderIntent;
 
-    mapping(string => string) public builderUrlsByChain;
-    uint64 latestExternalBlock;
+    mapping(string => string) public builderUrlsByChainId;
+    mapping(string => uint64) public latestExternalBlock;
     mapping(uint64 blockNumber => OrderSolutionResult) public topRankedSolution;
 
-    event BlockNumberUpdated(uint64 blockNumber);
+    event BlockNumberUpdated(string chainId, uint64 blockNumber);
 
     constructor(string[] memory chainIds, string[] memory builderUrls) {
         if (chainIds.length != builderUrls.length) {
             revert InvalidInput();
         }
         for (uint i = 0; i < chainIds.length; i++) {
-            builderUrlsByChain[chainIds[i]] = builderUrls[i];
+            builderUrlsByChainId[chainIds[i]] = builderUrls[i];
         }
     }
 
     // Related to receiving
-    function newOrder() external payable returns (bytes memory) {
+    function newIntent() external payable returns (bytes memory) {
         require(Suave.isConfidential());
 
         OrderIntent memory orderIntent = this
@@ -57,9 +57,15 @@ contract ArenaX is Intent {
         Suave.BidId orderBidId
     ) external payable returns (bytes memory) {
         require(Suave.isConfidential());
-        uint64 previousBlockNumber = latestExternalBlock;
+        bytes memory intentData = Suave.confidentialRetrieve(
+            orderBidId,
+            "orderIntent"
+        );
+        OrderIntent memory orderIntent = abi.decode(intentData, (OrderIntent));
+        string memory chainId = orderIntent.order.chainId;
+        uint64 previousBlockNumber = latestExternalBlock[chainId];
 
-        updateExternalBlockNumber();
+        updateExternalBlockNumber(chainId);
 
         if (latestExternalBlock > previousBlockNumber) {
             Suave.BidId topSolutionBidId = topRankedSolution[
@@ -68,18 +74,10 @@ contract ArenaX is Intent {
             bytes memory bundleData = Suave.fillMevShareBundle(
                 topSolutionBidId
             );
-            bytes memory intentData = Suave.confidentialRetrieve(
-                orderBidId,
-                "orderIntent"
-            );
-            OrderIntent memory orderIntent = abi.decode(
-                intentData,
-                (OrderIntent)
-            );
-            string memory builderUrl = builderUrlsByChain[orderIntent.chainId];
+            string memory builderUrl = builderUrlsByChainId[chainId];
 
             if (!bytes(builderUrl).length > 0) {
-                revert InvalidChain(orderIntent.chainId);
+                revert InvalidChain(chainId);
             }
 
             Suave.submitBundleJsonRPC(builderUrl, "mev_sendBundle", bundleData);
@@ -89,15 +87,22 @@ contract ArenaX is Intent {
         return abi.encodeWithSelector(this.emptyCallback.selector);
     }
 
-    function updateExternalBlockNumber() public view returns (bytes memory) {
-        uint64 blockNumber = Suave.getBlockNumber();
+    function updateExternalBlockNumber(
+        string memory chainId
+    ) public view returns (bytes memory) {
+        // Need to update this so that it takes in a chain id
+        uint64 blockNumber = Suave.getBlockNumber(chainId);
         return
-            abi.encodeWithSelector(this.setBlockNumber.selector, blockNumber);
+            abi.encodeWithSelector(
+                this.setBlockNumber.selector,
+                chainId,
+                blockNumber
+            );
     }
 
-    function setBlockNumber(uint64 blockNumber) public {
-        latestExternalBlock = blockNumber;
-        emit BlockNumberUpdated(blockNumber);
+    function setBlockNumber(string memory chaindId, uint64 blockNumber) public {
+        latestExternalBlock[chaindId] = blockNumber;
+        emit BlockNumberUpdated(chainId, blockNumber);
     }
 
     function emptyCallback() external payable {}
