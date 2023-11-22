@@ -1,27 +1,29 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity 0.8.19;
 
-import {Intent} from "./base/Intent.sol";
 import "suave/SuaveForge.sol";
+import {Intent} from "./base/Intent.sol";
 import {OrderIntent, OrderSolutionResult, Network} from "./base/Structs.sol";
 import {OrderIntentLibrary} from "./libraries/OrderIntentLibrary.sol";
 
-// Make this multi-chain!
-// Figure out what chains have the Universal Router
-// Figure out how you're gonna store rpcs + chains (maybe with a Network struct)
-// Figure out how you're gonna update the structs so that chain id is reflected (see
-// if that impacts the signatures at all (should because we should enforce EIP-712 signatures))
 contract ArenaX is Intent {
+    error InvalidInput();
+    error InvalidChain(string);
     using OrderIntentLibrary for OrderIntent;
 
-    string[] public builderUrls;
+    mapping(string => string) public builderUrlsByChain;
     uint64 latestExternalBlock;
     mapping(uint64 blockNumber => OrderSolutionResult) public topRankedSolution;
 
     event BlockNumberUpdated(uint64 blockNumber);
 
-    constructor(string[] memory builderUrls_) {
-        builderUrls = builderUrls_;
+    constructor(string[] memory chainIds, string[] memory builderUrls) {
+        if (chainIds.length != builderUrls.length) {
+            revert InvalidInput();
+        }
+        for (uint i = 0; i < chainIds.length; i++) {
+            builderUrlsByChain[chainIds[i]] = builderUrls[i];
+        }
     }
 
     // Related to receiving
@@ -66,13 +68,21 @@ contract ArenaX is Intent {
             bytes memory bundleData = Suave.fillMevShareBundle(
                 topSolutionBidId
             );
-            for (uint i = 0; i < builderUrls.length; i++) {
-                Suave.submitBundleJsonRPC(
-                    builderUrls[i],
-                    "mev_sendBundle",
-                    bundleData
-                );
+            bytes memory intentData = Suave.confidentialRetrieve(
+                orderBidId,
+                "orderIntent"
+            );
+            OrderIntent memory orderIntent = abi.decode(
+                intentData,
+                (OrderIntent)
+            );
+            string memory builderUrl = builderUrlsByChain[orderIntent.chainId];
+
+            if (!bytes(builderUrl).length > 0) {
+                revert InvalidChain(orderIntent.chainId);
             }
+
+            Suave.submitBundleJsonRPC(builderUrl, "mev_sendBundle", bundleData);
         }
 
         _rankSolution(orderBidId);

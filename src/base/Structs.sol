@@ -9,6 +9,8 @@ struct Order {
     uint256 deadline;
     bytes commands;
     bytes[] inputs;
+    // Note: This is only used on Arena X on SUAVE (not on the Universal Router)
+    string chainId;
 }
 
 struct OrderIntent {
