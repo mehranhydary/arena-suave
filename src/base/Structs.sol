@@ -35,3 +35,9 @@ struct Signature {
     bytes32 r;
     bytes32 s;
 }
+
+struct Network {
+    string name;
+    string rpc;
+    string chainId;
+}

@@ -3,9 +3,14 @@ pragma solidity 0.8.19;
 
 import {Intent} from "./base/Intent.sol";
 import "suave/SuaveForge.sol";
-import {OrderIntent, OrderSolutionResult} from "./base/Structs.sol";
+import {OrderIntent, OrderSolutionResult, Network} from "./base/Structs.sol";
 import {OrderIntentLibrary} from "./libraries/OrderIntentLibrary.sol";
 
+// Make this multi-chain!
+// Figure out what chains have the Universal Router
+// Figure out how you're gonna store rpcs + chains (maybe with a Network struct)
+// Figure out how you're gonna update the structs so that chain id is reflected (see
+// if that impacts the signatures at all (should because we should enforce EIP-712 signatures))
 contract ArenaX is Intent {
     using OrderIntentLibrary for OrderIntent;
 
