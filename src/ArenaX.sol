@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity 0.8.19;
 
-import "suave/SuaveForge.sol";
+import "suave/Suave.sol";
 import {Intent} from "./base/Intent.sol";
 import {OrderIntent, OrderSolutionResult, Network} from "./base/Structs.sol";
 import {OrderIntentLibrary} from "./libraries/OrderIntentLibrary.sol";
@@ -91,9 +91,11 @@ contract ArenaX is Intent {
         string memory chainId
     ) public view returns (bytes memory) {
         // Need to update this so that it takes in a chain id
-        uint64 blockNumber = Suave.getBlockNumber(
-            builderUrlsByChainId[chainId]
-        );
+        string memory builderUrl = builderUrlsByChainId[chainId];
+        if (!(bytes(builderUrl).length > 0)) {
+            revert InvalidChain(chainId);
+        }
+        uint64 blockNumber = Suave.getBlockNumber(builderUrl);
         return
             abi.encodeWithSelector(
                 this.setBlockNumber.selector,

@@ -42,6 +42,11 @@ Currently, the Uniswap Universal Router is deployed on the following chains:
 7. Optimism
 8. Polygon
 
+### <h3 align="">Other Technicals</h3>
+
+<b>Custom precompile for `suave-geth`</b>
+SUAVE from Flashbots (`suave-geth`) is added as a git module in this repo but slightly customized so that it could support a new function called `getBlockNumber`. This function can be used in the MEV appliction (ArenaX) to fetch block numbers from any chain - all you have to do is pass in the RPC URL for the network you are trying to submit an order on.
+
 ## <h2 align="">Roadmap</h2>
 
 # ADD THIS BEFORE MAKING PUBLIC
