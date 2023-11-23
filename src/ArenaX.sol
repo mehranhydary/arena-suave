@@ -67,7 +67,7 @@ contract ArenaX is Intent {
 
         updateExternalBlockNumber(chainId);
 
-        if (latestExternalBlock > previousBlockNumber) {
+        if (latestExternalBlock[chainId] > previousBlockNumber) {
             Suave.BidId topSolutionBidId = topRankedSolution[
                 previousBlockNumber
             ].bidId;
@@ -76,7 +76,7 @@ contract ArenaX is Intent {
             );
             string memory builderUrl = builderUrlsByChainId[chainId];
 
-            if (!bytes(builderUrl).length > 0) {
+            if (!(bytes(builderUrl).length > 0)) {
                 revert InvalidChain(chainId);
             }
 
@@ -91,7 +91,9 @@ contract ArenaX is Intent {
         string memory chainId
     ) public view returns (bytes memory) {
         // Need to update this so that it takes in a chain id
-        uint64 blockNumber = Suave.getBlockNumber(chainId);
+        uint64 blockNumber = Suave.getBlockNumber(
+            builderUrlsByChainId[chainId]
+        );
         return
             abi.encodeWithSelector(
                 this.setBlockNumber.selector,
@@ -100,8 +102,8 @@ contract ArenaX is Intent {
             );
     }
 
-    function setBlockNumber(string memory chaindId, uint64 blockNumber) public {
-        latestExternalBlock[chaindId] = blockNumber;
+    function setBlockNumber(string memory chainId, uint64 blockNumber) public {
+        latestExternalBlock[chainId] = blockNumber;
         emit BlockNumberUpdated(chainId, blockNumber);
     }
 
@@ -123,7 +125,7 @@ contract ArenaX is Intent {
         orderIntent.validate();
 
         OrderSolutionResult memory currentTopSolution = topRankedSolution[
-            latestExternalBlock
+            latestExternalBlock[orderIntent.order.chainId]
         ];
 
         if (egp > currentTopSolution.score) {
@@ -146,7 +148,9 @@ contract ArenaX is Intent {
                     })
                 )
             );
-            topRankedSolution[latestExternalBlock] = OrderSolutionResult({
+            topRankedSolution[
+                latestExternalBlock[orderIntent.order.chainId]
+            ] = OrderSolutionResult({
                 solver: msg.sender,
                 score: egp,
                 bidId: orderBidId
