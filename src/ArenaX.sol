@@ -2,11 +2,12 @@
 pragma solidity 0.8.19;
 
 import "suave/Suave.sol";
+import {Ownable} from "./libraries/Ownable.sol";
 import {Intent} from "./base/Intent.sol";
 import {OrderIntent, OrderSolutionResult, Network} from "./base/Structs.sol";
 import {OrderIntentLibrary} from "./libraries/OrderIntentLibrary.sol";
 
-contract ArenaX is Intent {
+contract ArenaX is Intent, Ownable {
     error InvalidInput();
     error InvalidChain(string);
     using OrderIntentLibrary for OrderIntent;
