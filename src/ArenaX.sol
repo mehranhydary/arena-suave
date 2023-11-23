@@ -2,7 +2,7 @@
 pragma solidity 0.8.19;
 
 import "suave/Suave.sol";
-import {Ownable} from "./libraries/Ownable.sol";
+import {Ownable} from "./access/Ownable.sol";
 import {Intent} from "./base/Intent.sol";
 import {OrderIntent, OrderSolutionResult, Network} from "./base/Structs.sol";
 import {OrderIntentLibrary} from "./libraries/OrderIntentLibrary.sol";
@@ -18,7 +18,22 @@ contract ArenaX is Intent, Ownable {
 
     event BlockNumberUpdated(string chainId, uint64 blockNumber);
 
-    constructor(string[] memory chainIds, string[] memory builderUrls) {
+    constructor(
+        string[] memory chainIds,
+        string[] memory builderUrls
+    ) Ownable(msg.sender) {
+        if (chainIds.length != builderUrls.length) {
+            revert InvalidInput();
+        }
+        for (uint i = 0; i < chainIds.length; i++) {
+            builderUrlsByChainId[chainIds[i]] = builderUrls[i];
+        }
+    }
+
+    function updateSupportedChains(
+        string[] memory chainIds,
+        string[] memory builderUrls
+    ) external onlyOwner {
         if (chainIds.length != builderUrls.length) {
             revert InvalidInput();
         }
@@ -91,7 +106,6 @@ contract ArenaX is Intent, Ownable {
     function updateExternalBlockNumber(
         string memory chainId
     ) public view returns (bytes memory) {
-        // Need to update this so that it takes in a chain id
         string memory builderUrl = builderUrlsByChainId[chainId];
         if (!(bytes(builderUrl).length > 0)) {
             revert InvalidChain(chainId);
