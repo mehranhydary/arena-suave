@@ -15,7 +15,7 @@ Arena X on SUAVE is an MEV application where users can submit signed intents for
 <b>Setup</b>
 
 1. The constructor takes 2 inputs, an array of chain ids and an array of builder urls. These inputs will initialize a mapping called `builderUrlsByChainId`. Ensure that the indexes for both inputs correspond (i.e. chainIds[0] should have a builderUrl that is relevant to the id stored at chainIds[0]).
-2. TALK ABOUT ONLY OWNER BEING USED TO CONTROL THE MEV APPLICATION (ADDING CHAIN IDS, ETC.)
+2. When Arena X is deployed, an admin is set (`msg.sender`). This admin can add / remove supported networks for Arena X with the `updateSupportedChains` function call.
 
 <b>Sending a transaction with SUAVE</b>
 
@@ -45,21 +45,18 @@ Currently, the Uniswap Universal Router is deployed on the following chains:
 ### <h3 align="">Other Technicals</h3>
 
 <b>Custom precompile for `suave-geth`</b>
+
 SUAVE from Flashbots (`suave-geth`) is added as a git module in this repo but slightly customized so that it could support a new function called `getBlockNumber`. This function can be used in the MEV appliction (ArenaX) to fetch block numbers from any chain - all you have to do is pass in the RPC URL for the network you are trying to submit an order on.
 
 ## <h2 align="">Roadmap</h2>
 
 # ADD THIS BEFORE MAKING PUBLIC
 
--   CUSTOM PRE-COMPILE TO GET BLOCK NUMBERS FROM MULTIPLE CHAINS (BASED ON WHAT IS PASSED IN)
--   FIGURE OUT A BETTER WAY TO RANK THE SOLUTIONS PROVIDED WITHIN A BLOCK
--   ADD AN ADMIN THAT CAN ADD CHAINS AS MORE THINGS GET DEPLOYED
-
-1. Adding support for EIP-712 signatures
-2. Adding support for EIP-1271 signatures
+1. Figure out how to build blocks when there are multiple intents with the same chain id and block number
+2. Adding support for EIP-712 and EIP-1271 signatures
 3. Adding support for multiple RPCs per chain
 4. Build a dApp for users to support Arena X
-5. Create searchers that listen to Arena X hints on SUAVE
+5. Add code to showcase how searchers and builders for Arena X can look
 
 ## <h2 align="">License</h2>
 
