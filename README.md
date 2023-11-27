@@ -50,8 +50,6 @@ SUAVE from Flashbots (`suave-geth`) is added as a git module in this repo but sl
 
 ## <h2 align="">Roadmap</h2>
 
-# ADD THIS BEFORE MAKING PUBLIC
-
 1. Figure out how to build blocks when there are multiple intents with the same chain id and block number
 2. Adding support for EIP-712 and EIP-1271 signatures
 3. Adding support for multiple RPCs per chain
